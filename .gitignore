@@ -6,3 +6,4 @@
 **/.env.local
 **/.env.development.local
 **/.env.test.local
+**/lab_solutions.md

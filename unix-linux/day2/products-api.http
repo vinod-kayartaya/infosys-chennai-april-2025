@@ -1,0 +1,7 @@
+GET /products/3 HTTP/1.1
+Host: fakestoreapi.com
+Accept: application/json
+
+####
+
+
