@@ -68,4 +68,3 @@
    - Backup strategies
    - Best practices review
    - Final project implementation
-   - Q&A session
