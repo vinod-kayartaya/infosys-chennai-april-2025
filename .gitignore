@@ -7,3 +7,10 @@
 **/.env.development.local
 **/.env.test.local
 **/lab_solutions.md
+
+2-python/day2
+2-python/day3
+3-jenkins/
+4-ansible/
+5-docker/
+6-kubernetes/
