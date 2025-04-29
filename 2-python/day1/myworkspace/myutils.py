@@ -12,9 +12,12 @@ def dirr(obj):
     return [a for a in dir(obj) if not a.startswith('_')]
 
 
-def number2words(n):
+def number_to_words(number):
+    """
+    Converts a number into words (supports up to crores).
+    """
 
-    words1 = {
+    single_digits = {
         0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four',
         5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine',
         10: 'ten', 11: 'eleven', 12: 'twelve', 13: 'thirteen',
@@ -22,43 +25,50 @@ def number2words(n):
         17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty'
     }
 
-    words2 = {
+    tens_multiples = {
         2: 'twenty', 3: 'thirty', 4: 'forty', 5: 'fifty',
         6: 'sixty', 7: 'seventy', 8: 'eighty', 9: 'ninety'
     }
 
-    units = ['', 'hundred', 'thousand', 'lakh', 'crore']
+    place_values = ['', 'hundred', 'thousand', 'lakh', 'crore']
 
-    print(f'received {n}')
-    # 1_23_45_6_78
-    nums = []
-    i = 1
-    while n > 0:
-        if i == 2:
-            m = n % 10
-            n //= 10
+    if number == 0:
+        return single_digits[0]
+
+    number_parts = []
+    place_index = 0
+    while number > 0:
+        if place_index == 1:  # For the "hundred" place
+            number_parts.append(number % 10)
+            number //= 10
+        else:  # For other places (thousands, lakhs, crores)
+            number_parts.append(number % 100)
+            number //= 100
+        place_index += 1
+
+    words = ''
+    for place_index in range(len(number_parts) - 1, -1, -1):
+        current_part = number_parts[place_index]
+        if current_part == 0:
+            continue
+
+        if place_index == 1:  # Handle "hundred" separately
+            words += single_digits[current_part] + ' ' + place_values[place_index] + ' '
         else:
-            m = n % 100
-            n //= 100
-        nums.append(m)
-        i += 1
+            if current_part <= 20:
+                words += single_digits[current_part] + ' ' + place_values[place_index] + ' '
+            else:
+                tens_place = current_part // 10
+                units_place = current_part % 10
+                words += tens_multiples.get(tens_place, '') + ' '
+                if units_place > 0:
+                    words += single_digits[units_place] + ' '
+                words += place_values[place_index] + ' '
 
-    s = ''
-    while len(nums) > 0:
-        x = nums.pop()
-        u = units.pop()
-
-        if x <= 20:
-            s += words1.get(x) + ' '  + u + ' '
-        else:
-            x1 = x // 10
-            x2 = x % 10
-            s += words2.get(x1) + ' ' + words1.get(x2) + ' '  + u + ' '
-
-    print(s)
+    return words.strip()
 
 
 if __name__ == '__main__':
-    # n = input('Enter a number: ')
-    n = 12345678
-    print(number2words(n))
+    number = int(input('Enter a number: '))
+    # number = 1002
+    print(number_to_words(number))
