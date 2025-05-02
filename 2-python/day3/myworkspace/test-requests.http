@@ -1,0 +1,80 @@
+@hostname=vin-contact-service.onrender.com
+###
+
+GET /api/contacts
+Host: {{hostname}}
+Accept: application/json
+
+###
+GET /api/contacts
+Host: {{hostname}}
+Accept: application/xml
+
+###
+GET /api/contacts
+Host: {{hostname}}
+Accept: text/csv
+
+###
+GET /api/contacts
+Host: {{hostname}}
+Accept: text/plain
+###
+GET /api/contacts
+Host: {{hostname}}
+Accept: text/html
+###
+
+POST /api/contacts
+Host: {{hostname}}
+Content-Type: application/json
+
+{
+    "firstname": "Vinod",
+    "lastname": "Kumar",
+    "email": "vinod@vinod.co",
+    "phone": "9731424784",
+    "gender": "Male",
+    "city": "Bangalore"
+}
+
+###
+GET /api/contacts/9cca58de-45ad-4900-a684-6f483b7feedb
+Host: {{hostname}}
+Content-Type: application/json
+
+###
+PUT /api/contacts/9cca58de-45ad-4900-a684-6f483b7feedb
+Host: {{hostname}}
+Content-Type: application/json
+
+{
+  "firstname": "Vinod",
+  "lastname": "Kumar",
+  "gender": "Male",
+  "email": "vinod@vinod.co",
+  "phone": "9731424784",
+  "address": null,
+  "city": null,
+  "state": "Karnataka",
+  "country": "India",
+  "pincode": null,
+  "picture": null
+}
+
+###
+
+GET /api/customers
+Host: localhost:1234
+Accept: application/json
+###
+POST /api/customers
+Host: localhost:1234
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Vinay",
+  "phone": "98014566000",
+  "email": "vinay@xmpl.com"
+}

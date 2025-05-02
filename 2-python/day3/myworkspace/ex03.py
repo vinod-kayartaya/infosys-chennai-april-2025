@@ -22,6 +22,14 @@ class Customer(Base):
     def __repr__(self):
         return f"Customer(id={self.id}, name='{self.name}', email='{self.email}', phone='{self.phone}', city='{self.city}')"
     
+    def get_as_dict(self):
+        return dict(
+            id=self.id, 
+            name=self.name, 
+            city=self.city, 
+            email=self.email, 
+            phone=self.phone)
+    
     def print(self):
         print(f'Name  : {self.id}')
         print(f'Name  : {self.name}')
