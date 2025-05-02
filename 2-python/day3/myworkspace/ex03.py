@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Double
+from sqlalchemy import create_engine, Column, Integer, String, or_
 from sqlalchemy.orm import declarative_base,  sessionmaker
 
 # connection string to work with MySQL
@@ -53,6 +53,76 @@ def display_all_customers():
         for c in session.query(Customer).all():
             c.print()
 
+
+def display_customers_from_city():
+    search_city = input('Enter city to search for customers: ')
+
+    with Session() as session:
+        customers = session.query(Customer) \
+            .filter_by(city=search_city) \
+            .all()
+        
+        if len(customers) == 0:
+            print(f'No customers found in the city {search_city}')
+            return
+        
+        print(f'Customers from the city of {search_city}:')
+        for c in customers:
+            c.print()
+
+def search_by_email_or_phone():
+    email = input('Enter email: ')
+    phone = input('Enter phone: ')
+    with Session() as session:
+        # customers = session.query(Customer).filter(
+        #     or_(Customer.email==email, Customer.phone==phone)
+        # ).all()
+
+        customers = session.query(Customer).filter(
+            (Customer.email==email) | (Customer.phone==phone)
+        ).all()
+
+        for c in customers:
+            print(c)
+
+def search_by_cities():
+    cities = input('Enter cities to search (comma separated): ').split(',')
+    cities = [c.strip() for c in cities]
+    with Session() as session:
+        customers = session.query(Customer).filter(Customer.city.in_(cities)).all()
+        for c in customers:
+            print(c)
+
+def search_by_id_and_update():
+    id_to_search = input('Enter customer id to search: ')
+    with Session() as session:
+        c1 = session.query(Customer).filter_by(id=id_to_search).first()
+    
+        if not c1:
+            print(f'No customer data found for id "{id_to_search}"')
+            return
+        
+        print('Enter values to change (or just press enter to keep the same):')
+        name = input(f'Name [{c1.name}]: ')
+        email = input(f'Name [{c1.email}]: ')
+        phone = input(f'Name [{c1.phone}]: ')
+        city = input(f'Name [{c1.city}]: ')
+
+        # modify the value of a session object directly and commit
+        # when an entity object in the session is modified, it is considered as `dirty`
+        # during session.commit(), `dirty` objects result in sql update command
+        if name.strip(): c1.name = name
+        if email.strip(): c1.email = email
+        if phone.strip(): c1.phone = phone
+        if city.strip(): c1.city = city
+
+        try:
+            session.commit()
+            print('Data updated successfully')
+        except Exception as e:
+            print(f'There was an error: {e}')
+
+
 def search_by_email_and_delete():
     email_to_search = input('Enter customer email to search: ')
     with Session() as session:
@@ -76,6 +146,10 @@ def search_by_email_and_delete():
                 session.rollback()
 
 if __name__ == '__main__':
-    search_by_email_and_delete()
+    search_by_email_or_phone()
+    # search_by_cities()
+    # search_by_id_and_update()
+    # display_customers_from_city()
+    # search_by_email_and_delete()
     # accept_and_add_customer_data()
     # display_all_customers()
