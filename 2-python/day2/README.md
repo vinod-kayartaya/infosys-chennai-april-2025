@@ -430,32 +430,6 @@ session.delete(user)
 session.commit()
 ```
 
-### Relationships and Joins
-
-SQLAlchemy allows you to define relationships between models, making it easy to work with related data:
-
-```python
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-
-class Order(Base):
-    __tablename__ = 'orders'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    amount = Column(Integer)
-
-    user = relationship("User", back_populates="orders")
-
-# Add relationship to User model
-User.orders = relationship("Order", back_populates="user")
-
-# Query with relationships
-user = session.query(User).first()
-for order in user.orders:
-    print(f"Order {order.id}: ${order.amount}")
-```
-
 ## Testing in Python
 
 ### Introduction to unittest
