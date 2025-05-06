@@ -1,0 +1,76 @@
+node {
+    // Define email recipients
+    def emailRecipients = 'vinod@vinod.co'
+    
+    try {
+        // Stage 1: Checkout code
+        stage('Checkout') {
+            git url: 'https://github.com/vinod-kayartaya/flask-customer-api/', branch: 'main'
+            echo 'Code checkout completed'
+        }
+        
+        // Stage 2: Setup Python environment and install dependencies
+        stage('Setup') {
+            sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+            '''
+            echo 'Python environment setup completed'
+        }
+        
+        // Stage 3: Run tests
+        stage('Test') {
+            sh '''
+                . venv/bin/activate
+                python -m pytest
+            '''
+            echo 'Tests completed successfully'
+        }
+        
+        // If we reach here, all stages were successful
+        currentBuild.result = 'SUCCESS'
+        
+        // Send success email
+        emailext (
+            subject: "Pipeline Successful: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+            body: """
+                Pipeline execution completed successfully!
+                
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Build URL: ${env.BUILD_URL}
+                
+                Test results are available in the Jenkins console.
+            """,
+            to: emailRecipients
+        )
+        
+    } catch (Exception e) {
+        // Mark build as failed
+        currentBuild.result = 'FAILURE'
+        
+        // Send failure email
+        emailext (
+            subject: "Pipeline Failed: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+            body: """
+                Pipeline execution failed!
+                
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Build URL: ${env.BUILD_URL}
+                
+                Error: ${e.message}
+                
+                Please check the Jenkins console for more details.
+            """,
+            to: emailRecipients
+        )
+        
+        // Re-throw the exception to mark the build as failed
+        throw e
+    } finally {
+        // Cleanup workspace
+        cleanWs()
+    }
+} 
