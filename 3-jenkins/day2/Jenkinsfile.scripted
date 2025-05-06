@@ -1,6 +1,6 @@
 node {
     // Define email recipients
-    def emailRecipients = 'vinod@vinod.co'
+    def emailRecipients = 'vinod@vinod.co,vinod@knowledgeworksindia.com'
     
     try {
         // Stage 1: Checkout code
