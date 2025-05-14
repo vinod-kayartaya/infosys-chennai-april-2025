@@ -9,14 +9,13 @@
 **/.env.test.local
 **/lab_solutions.md
 
+5-docker/day5
+
 4-ansible/day1
 4-ansible/day2
 4-ansible/day3
 4-ansible/day4
 4-ansible/day5
-
-5-docker/day4
-5-docker/day5
 
 6-kubernetes/day1
 6-kubernetes/day2
