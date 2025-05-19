@@ -20,22 +20,6 @@
    - [Best Practices](#best-practices-1)
    - [Validation and Debugging](#validation-and-debugging)
 
-3. [YAML Syntax](#yaml-syntax-basic)
-
-   - [Basic YAML Rules](#basic-yaml-rules)
-   - [YAML Best Practices](#yaml-best-practices)
-   - [YAML Validation Tools](#yaml-validation-tools)
-   - [Practice Exercises](#practice-exercises)
-   - [Additional Resources](#additional-resources)
-
-4. [Ansible Playbooks and Basic Operations](#ansible-playbooks-and-basic-operations)
-   - [Introduction to Playbooks](#1-introduction-to-playbooks)
-   - [Writing Your First Playbook](#2-writing-your-first-playbook)
-   - [Variables in Ansible](#3-variables-in-ansible)
-   - [Conditionals and Loops](#4-conditionals-and-loops)
-   - [Handlers](#5-handlers)
-   - [Conclusion and Next Steps](#conclusion-and-next-steps)
-
 # Ansible Inventory
 
 Ansible inventory is a critical component of Ansible automation that defines the hosts and groups you're managing with Ansible. It serves as a catalog of your infrastructure that Ansible uses to determine where and how to execute tasks.
