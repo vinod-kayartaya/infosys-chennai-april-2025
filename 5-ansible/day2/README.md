@@ -1,25 +1,3 @@
-# Ansible Day 2 Training
-
-## Table of Contents
-
-1. [Ansible Inventory](#ansible-inventory)
-
-   - [Core Concepts](#core-concepts-of-ansible-inventory)
-   - [Inventory File Formats](#inventory-file-formats)
-   - [Dynamic Inventory](#dynamic-inventory)
-   - [Special Variables](#special-variables)
-   - [Inventory Directory Structure](#inventory-directory-structure)
-   - [Best Practices](#best-practices)
-
-2. [Ansible Configuration File (ansible.cfg)](#ansible-configuration-file-ansiblecfg-explained)
-
-   - [Configuration File Locations](#configuration-file-locations)
-   - [Basic Structure](#basic-structure)
-   - [Common Sections](#common-sections)
-   - [Advanced Features](#advanced-features)
-   - [Best Practices](#best-practices-1)
-   - [Validation and Debugging](#validation-and-debugging)
-
 # Ansible Inventory
 
 Ansible inventory is a critical component of Ansible automation that defines the hosts and groups you're managing with Ansible. It serves as a catalog of your infrastructure that Ansible uses to determine where and how to execute tasks.
