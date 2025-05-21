@@ -425,6 +425,24 @@ You can force handlers to run even if tasks fail by using `--force-handlers` fla
 ansible-playbook playbook.yml --force-handlers
 ```
 
+## Note:
+
+Handlers and regular tasks in Ansible serve different purposes, and there are certain scenarios where handlers offer unique functionality that regular tasks don't provide.
+
+The key difference is that handlers are only triggered when notified by tasks and run at specific points in the playbook execution (typically at the end of each play). They're designed for actions that should only happen once, regardless of how many tasks notify them.
+
+Here are scenarios where handlers are more suitable than regular tasks:
+
+1. Service restarts after configuration changes - If multiple tasks modify a service's configuration, you want the service to restart only once after all changes are complete, not after each change. This is handlers' primary use case.
+
+2. Deferred execution - When you need an action to execute only after several prerequisite tasks have completed, and only if those tasks made changes.
+
+3. Avoiding unnecessary operations - When an operation (like restarting a service) is potentially disruptive and should only occur when absolutely necessary.
+
+4. Conditional execution based on changes - Handlers only run when notified by tasks that actually made changes (when a task's "changed" state is true).
+
+That said, almost anything a handler can do could technically be accomplished with regular tasks using careful conditionals and flags, but it would be more complex and error-prone. Handlers provide a cleaner, more efficient way to handle these specific scenarios.
+
 ## Exercise: Working with Handlers
 
 Create a playbook that:
