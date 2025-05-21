@@ -9,6 +9,17 @@ To reinforce what you've learned, try these exercises:
 
 This guide provides the necessary Ansible modules and Linux commands to complete this exercise.
 
+## What is LAMP stack?
+
+A LAMP stack is a popular open-source web development platform that consists of four key components:
+
+1. **Linux** - The operating system that serves as the foundation
+2. **Apache** - The web server software that handles HTTP requests
+3. **MySQL** - The relational database management system for storing data
+4. **PHP** (or sometimes Perl/Python) - The programming language used for server-side processing
+
+LAMP is widely used for developing dynamic web applications because it's free, open-source, and the components work seamlessly together. Each technology in the stack handles a different aspect of web application functionality, from serving web pages to processing business logic and managing data storage.
+
 ## Target Environment
 
 - **Operating System**: Ubuntu
