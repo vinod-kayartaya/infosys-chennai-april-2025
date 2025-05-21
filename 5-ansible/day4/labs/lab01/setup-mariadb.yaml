@@ -1,0 +1,48 @@
+---
+- name: Install and configure MariaDB server on Ubuntu
+  hosts: db_server1
+  become: yes
+  vars:
+    mariadb_root_password: "$trongP@ssw0rd"
+    mariadb_bind_address: "0.0.0.0"
+
+  tasks:
+    - name: Install MariaDB server and client
+      apt:
+        name:
+          - mariadb-server
+          - mariadb-client
+          - python3-mysqldb
+        state: present
+        update_cache: yes
+
+    - name: Ensure MariaDB is running and enabled on boot
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    # First connection without password using UNIX socket
+    - name: Set root password (initial setup)
+      mysql_user:
+        name: root
+        password: "{{ mariadb_root_password }}"
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+        host: localhost
+      no_log: false
+
+    - name: Configure MariaDB bind address
+      template:
+        src: 50-server.cnf.j2
+        dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart mariadb
+
+  handlers:
+  - name: restart mariadb
+    service:
+      name: mariadb
+      state: restarted
