@@ -217,6 +217,7 @@ graph TD
   ```
 
 - **Managed Node Requirements**
+
   ```bash
   # Only needs
   python3
