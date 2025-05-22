@@ -1105,3 +1105,361 @@ sys.stdout.write(password)
 ### Vault and Custom Encryption Methods
 
 While Ansible Vault uses AES256 by default, you can create custom encryption methods by implementing a script that handles encryption and decryption.
+
+# Jinja Templates in Ansible
+
+## Introduction
+
+Jinja is a powerful templating engine used extensively in Ansible for dynamic content generation. It allows you to create flexible playbooks and configuration files that adapt to different environments and system characteristics.
+
+This tutorial uses facts gathered from a target called `web_server1` to demonstrate all Jinja features in practical scenarios.
+
+Before diving into Jinja templates, let's understand the structure of Ansible facts. When Ansible runs the `setup` module (automatically or explicitly), it gathers comprehensive information about the target system.
+
+### Sample Facts Structure for web_server1
+
+```yaml
+ansible_facts:
+  ansible_hostname: web_server1
+  ansible_fqdn: web_server1.company.com
+  ansible_os_family: Debian
+  ansible_distribution: Ubuntu
+  ansible_distribution_version: '22.04'
+  ansible_architecture: x86_64
+  ansible_processor_count: 2
+  ansible_processor_cores: 3
+  ansible_processor_threads_per_core: 1
+  ansible_memtotal_mb: 7892
+  ansible_interfaces:
+    - lo
+    - eth0
+    - eth1
+  ansible_eth0:
+    ipv4:
+      address: 192.168.1.100
+      netmask: 255.255.255.0
+    macaddress: 00:50:56:12:34:56
+  ansible_mounts:
+    - mount: /
+      device: /dev/sda1
+      fstype: xfs
+      size_total: 107374182400
+    - mount: /var
+      device: /dev/sda2
+      fstype: xfs
+      size_total: 53687091200
+  ansible_service_mgr: systemd
+  ansible_user_id: root
+  ansible_env:
+    PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+    HOME: /root
+```
+
+---
+
+## Basic Jinja Syntax
+
+Jinja uses three types of delimiters:
+
+- `{{ }}` - Expressions (for output)
+- `{% %}` - Statements (for control structures)
+- `{# #}` - Comments
+
+### Example: Basic Template
+
+```jinja2
+{# This is a comment - Server configuration template #}
+Server Name: {{ ansible_hostname }}
+IP Address: {{ ansible_default_ipv4.address }}
+Operating System: {{ ansible_distribution }} {{ ansible_distribution_version }}
+```
+
+**Output:**
+
+```
+Server Name: web_server1
+IP Address: 192.168.1.100
+Operating System: CentOS 8.4
+```
+
+---
+
+## Variable Substitution
+
+### Simple Variable Access
+
+```jinja2
+Hostname: {{ ansible_hostname }}
+FQDN: {{ ansible_fqdn }}
+Architecture: {{ ansible_architecture }}
+```
+
+### Dictionary Access
+
+```jinja2
+{# Two ways to access dictionary values #}
+IP Address (dot notation): {{ ansible_default_ipv4.address }}
+IP Address (bracket notation): {{ ansible_default_ipv4['address'] }}
+
+{# Bracket notation is useful for dynamic keys #}
+{% set interface_name = 'eth0' %}
+Interface IP: {{ ansible_facts[interface_name]['ipv4']['address'] }}
+```
+
+### Default Values
+
+```jinja2
+{# Using default filter for missing values #}
+Web Port: {{ web_port | default(80) }}
+SSL Port: {{ ssl_port | default(443) }}
+Database Host: {{ db_host | default('localhost') }}
+
+{# Using default with boolean check #}
+Service Status: {{ service_enabled | default(false) }}
+```
+
+---
+
+## Control Structures
+
+### Conditional Statements
+
+#### Simple If Statement
+
+```jinja2
+{% if ansible_os_family == "RedHat" %}
+Package Manager: yum/dnf
+Firewall: firewalld
+{% elif ansible_os_family == "Debian" %}
+Package Manager: apt
+Firewall: ufw
+{% else %}
+Package Manager: unknown
+Firewall: unknown
+{% endif %}
+```
+
+#### Complex Conditions
+
+```jinja2
+{% if ansible_memtotal_mb >= 8192 and ansible_processor_cores >= 4 %}
+Server Class: High Performance
+Recommended Services: Database, Application Server
+{% elif ansible_memtotal_mb >= 4096 and ansible_processor_cores >= 2 %}
+Server Class: Medium Performance
+Recommended Services: Web Server, Caching
+{% else %}
+Server Class: Basic
+Recommended Services: Static Content, Monitoring
+{% endif %}
+```
+
+#### Checking Variable Existence
+
+```jinja2
+{% if ansible_virtualization_type is defined %}
+Virtualization: {{ ansible_virtualization_type }}
+{% else %}
+Virtualization: Physical Server
+{% endif %}
+
+{% if 'docker' in ansible_facts %}
+Docker Status: Available
+{% else %}
+Docker Status: Not Installed
+{% endif %}
+```
+
+### Loops
+
+#### Simple Loop
+
+```jinja2
+Network Interfaces:
+{% for interface in ansible_interfaces %}
+- {{ interface }}
+{% endfor %}
+```
+
+**Output:**
+
+```
+Network Interfaces:
+- lo
+- eth0
+- eth1
+```
+
+#### Loop with Conditions
+
+```jinja2
+Active Network Interfaces:
+{% for interface in ansible_interfaces %}
+{% if interface != 'lo' and ansible_facts[interface]['active'] %}
+- Interface: {{ interface }}
+  IP: {{ ansible_facts[interface]['ipv4']['address'] | default('No IP') }}
+  MAC: {{ ansible_facts[interface]['macaddress'] | default('No MAC') }}
+{% endif %}
+{% endfor %}
+```
+
+#### Loop with Dictionary
+
+```jinja2
+Mount Points:
+{% for mount in ansible_mounts %}
+- Path: {{ mount.mount }}
+  Device: {{ mount.device }}
+  Filesystem: {{ mount.fstype }}
+  Size: {{ (mount.size_total / 1024 / 1024 / 1024) | round(2) }} GB
+  Usage: {{ ((mount.size_total - mount.size_available) / mount.size_total * 100) | round(1) }}%
+{% endfor %}
+```
+
+#### Loop Variables
+
+```jinja2
+System Information Summary:
+{% for key, value in ansible_facts.items() %}
+{% if loop.index <= 5 %}
+{{ loop.index }}. {{ key }}: {{ value }}
+{% endif %}
+{% endfor %}
+
+{# Loop variables available:
+   loop.index - 1-based counter
+   loop.index0 - 0-based counter
+   loop.first - True for first iteration
+   loop.last - True for last iteration
+   loop.length - Total iterations
+#}
+```
+
+#### Nested Loops
+
+```jinja2
+Network Configuration:
+{% for interface in ansible_interfaces %}
+{% if interface != 'lo' %}
+Interface: {{ interface }}
+{% if ansible_facts[interface]['ipv4'] is defined %}
+  IPv4 Addresses:
+  {% for addr in ansible_facts[interface]['ipv4_secondaries'] | default([ansible_facts[interface]['ipv4']]) %}
+    - {{ addr.address }}/{{ addr.netmask }}
+  {% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+```
+
+---
+
+## Filters
+
+Filters transform variables and are applied using the pipe (`|`) operator.
+
+### String Filters
+
+```jinja2
+Hostname Upper: {{ ansible_hostname | upper }}
+Hostname Lower: {{ ansible_hostname | lower }}
+Hostname Title: {{ ansible_hostname | title }}
+
+{# String manipulation #}
+OS Info: {{ ansible_distribution | replace('CentOS', 'Community Enterprise OS') }}
+Short Hostname: {{ ansible_fqdn | regex_replace('^([^.]+).*', '\\1') }}
+
+```
+
+### Numeric Filters
+
+```jinja2
+{# Memory calculations #}
+Memory (MB): {{ ansible_memtotal_mb }}
+Memory (GB): {{ (ansible_memtotal_mb / 1024) | round(2) }}
+Memory (GB, rounded): {{ (ansible_memtotal_mb / 1024) | round | int }}
+
+{# Disk space calculations #}
+{% for mount in ansible_mounts %}
+{{ mount.mount }} - {{ (mount.size_total / 1024**3) | round(1) }}GB
+{% endfor %}
+```
+
+### List Filters
+
+```jinja2
+{# List operations #}
+Total Interfaces: {{ ansible_interfaces | length }}
+First Interface: {{ ansible_interfaces | first }}
+Last Interface: {{ ansible_interfaces | last }}
+Sorted Interfaces: {{ ansible_interfaces | sort | join(', ') }}
+
+{# Filtering lists #}
+Non-Loopback Interfaces: {{ ansible_interfaces | reject('equalto', 'lo') | list | join(', ') }}
+
+{# Unique values #}
+{% set all_filesystems = [] %}
+{% for mount in ansible_mounts %}
+{% set _ = all_filesystems.append(mount.fstype) %}
+{% endfor %}
+Unique Filesystems: {{ all_filesystems | unique | join(', ') }}
+```
+
+---
+
+## Tests
+
+Tests check variables and return boolean values.
+
+### Common Tests
+
+```jinja2
+{# Testing variable states #}
+{% if ansible_hostname is defined %}
+Hostname is defined: {{ ansible_hostname }}
+{% endif %}
+
+{% if custom_variable is undefined %}
+Custom variable is not set
+{% endif %}
+
+{% if ansible_memtotal_mb is number %}
+Memory is numeric: {{ ansible_memtotal_mb }}MB
+{% endif %}
+
+{% if ansible_interfaces is iterable %}
+Interfaces can be looped: {{ ansible_interfaces | join(', ') }}
+{% endif %}
+```
+
+### String Tests
+
+```jinja2
+{% if ansible_hostname is match('web.*') %}
+This is a web server
+{% endif %}
+
+{% if ansible_fqdn is search('company.com') %}
+This server belongs to company.com domain
+{% endif %}
+
+{% if ansible_distribution is in ['CentOS', 'RedHat', 'Fedora'] %}
+This is a RedHat-based system
+{% endif %}
+```
+
+### Numeric Tests
+
+```jinja2
+{% if ansible_processor_cores is divisibleby(2) %}
+Even number of CPU cores: {{ ansible_processor_cores }}
+{% endif %}
+
+{% if ansible_memtotal_mb is gt(4096) %}
+High memory system (>4GB)
+{% elif ansible_memtotal_mb is lt(2048) %}
+Low memory system (<2GB)
+{% else %}
+Medium memory system
+{% endif %}
+```
