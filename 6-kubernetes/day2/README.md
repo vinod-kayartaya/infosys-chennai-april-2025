@@ -612,3 +612,285 @@ kubectl apply -f db-secret.yaml
 | Data Format | Plain text                       | Base64-encoded                   |
 | Access      | Env variables, files, or volumes | Env variables, files, or volumes |
 | Use Case    | App settings                     | DB passwords, tokens             |
+
+# Volumes
+
+In **Kubernetes (K8s)**, a **Volume** is a directory accessible to containers in a Pod. Unlike a container’s local storage (which is temporary and tied to the container's life), volumes exist **independently of the container** and can preserve data across container restarts.
+
+### **Why Use Volumes?**
+
+1. **Persistent data** – Store data even if the container dies.
+2. **Sharing data** – Allow multiple containers in a pod to access the same files.
+3. **Configuration** – Inject config files or secrets into a container.
+
+### **Types of Volumes in Kubernetes**
+
+Some common volume types:
+
+- `emptyDir`
+- `hostPath`
+- `configMap`
+- `secret`
+- `persistentVolumeClaim` (PVC)
+
+### **1. emptyDir Volume Example**
+
+Used to share temporary storage between containers in a pod.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: app-container
+      image: busybox
+      command: ['sh', '-c', 'echo Hello > /data/message; sleep 3600']
+      volumeMounts:
+        - name: myvolume
+          mountPath: /data
+    - name: sidecar
+      image: busybox
+      command: ['sh', '-c', 'cat /data/message; sleep 3600']
+      volumeMounts:
+        - name: myvolume
+          mountPath: /data
+  volumes:
+    - name: myvolume
+      emptyDir: {}
+```
+
+**Explanation:**
+
+- Both containers share `/data` via `emptyDir`.
+- The first container writes a message, the second reads it.
+
+### **2. hostPath Volume Example**
+
+Mounts a file or directory from the node’s filesystem.
+
+```yaml
+volumes:
+  - name: host-volume
+    hostPath:
+      path: /var/log
+```
+
+**Caution**: Useful in testing but not recommended in production due to tight node coupling.
+
+### **3. ConfigMap Volume Example**
+
+Inject configuration files into a container.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  app.properties: |
+    key1=value1
+    key2=value2
+```
+
+```yaml
+volumeMounts:
+  - name: config-volume
+    mountPath: /etc/config
+volumes:
+  - name: config-volume
+    configMap:
+      name: app-config
+```
+
+**Explanation**: The container sees `/etc/config/app.properties` file inside.
+
+### **4. PersistentVolumeClaim (PVC) Example**
+
+Used for **persistent storage** like cloud disks or network drives.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+```yaml
+volumeMounts:
+  - name: persistent-storage
+    mountPath: /data
+volumes:
+  - name: persistent-storage
+    persistentVolumeClaim:
+      claimName: myclaim
+```
+
+**Explanation**: Data stored in `/data` will survive pod restarts.
+
+# Deployment in Kubernetes
+
+In Kubernetes, a **Deployment** is a higher-level **controller** that manages **ReplicaSets** and provides **declarative updates** to Pods and ReplicaSets. It is one of the most commonly used resources in Kubernetes.
+
+A **Deployment** allows you to:
+
+- **Create and manage ReplicaSets**, which in turn manage the Pods.
+- **Update the application** without downtime using **rolling updates**.
+- **Rollback** to previous versions in case of failure.
+- **Scale the application** up or down easily.
+- Manage **stateless applications** efficiently.
+
+## **Basic Deployment YAML Example**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+```
+
+## **Key Features of a Deployment**
+
+| Feature              | Description                                                 |
+| -------------------- | ----------------------------------------------------------- |
+| **replicas**         | Desired number of pod copies                                |
+| **selector**         | Matches Pods using labels                                   |
+| **template**         | Defines the Pod's specification (same as in Pod/ReplicaSet) |
+| **strategy**         | Specifies update strategy (default is RollingUpdate)        |
+| **revision history** | Allows rollback to previous versions                        |
+
+## **All Important Commands for Deployments**
+
+### 1. **Create a Deployment**
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+- Creates a new Deployment from the YAML definition.
+
+### 2. **List Deployments**
+
+```bash
+kubectl get deployments
+```
+
+- Lists all Deployments in the current namespace.
+
+### 3. **Describe a Deployment**
+
+```bash
+kubectl describe deployment my-deployment
+```
+
+- Shows detailed info: events, selectors, replica sets, pod template, etc.
+
+### 4. **Check ReplicaSets Managed by a Deployment**
+
+```bash
+kubectl get rs
+```
+
+- Lists ReplicaSets created and managed by Deployments.
+
+### 5. **View Pods Created by a Deployment**
+
+```bash
+kubectl get pods -l app=myapp
+```
+
+- View pods with specific label set in Deployment.
+
+### 6. **Update the Deployment (e.g., change image)**
+
+```bash
+kubectl set image deployment/my-deployment nginx-container=nginx:1.25
+```
+
+- Updates the container image, triggering a rolling update.
+
+### 7. **Check Rollout Status**
+
+```bash
+kubectl rollout status deployment/my-deployment
+```
+
+- Shows progress of a deployment update.
+
+### 8. **Rollback to Previous Revision**
+
+```bash
+kubectl rollout undo deployment/my-deployment
+```
+
+- Rollback to previous working state if the new rollout fails.
+
+### 9. **View Revision History**
+
+```bash
+kubectl rollout history deployment/my-deployment
+```
+
+- Lists all revisions of the deployment.
+
+### 10. **Scale the Deployment**
+
+```bash
+kubectl scale deployment my-deployment --replicas=5
+```
+
+- Changes the number of pods the deployment maintains.
+
+### 11. **Pause and Resume Rollout**
+
+```bash
+kubectl rollout pause deployment my-deployment
+kubectl rollout resume deployment my-deployment
+```
+
+- Pause a deployment before making changes and resume after.
+
+### 12. **Delete a Deployment**
+
+```bash
+kubectl delete deployment my-deployment
+```
+
+- Deletes the Deployment and associated ReplicaSets and Pods.
+
+### 13. **Edit a Deployment**
+
+```bash
+kubectl edit deployment my-deployment
+```
+
+- Opens a live editor to modify the deployment YAML.
+
+## **Tips and Best Practices**
+
+- Always use **labels** and **selectors** properly; they are critical for managing pods.
+- Use **`kubectl rollout`** commands to manage updates and rollbacks effectively.
+- Prefer **Deployments over ReplicaSets** directly for better control and stability.
+- Test with **probes (readiness/liveness)** for production-grade deployments.
