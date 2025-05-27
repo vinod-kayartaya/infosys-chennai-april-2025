@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nw-suppliers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nw-suppliers
+  template:
+    metadata:
+      labels:
+        app: nw-suppliers
+    spec:
+      containers:
+        - name: nw-suppliers
+          image: learnwithvinod/nw-suppliers
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nw-suppliers-service
+spec:
+  selector:
+    app: nw-suppliers
+  ports:
+    - protocol: TCP
+      port: 8080 # Service port (internal to cluster)
+      targetPort: 8080 # Pod's port (container)

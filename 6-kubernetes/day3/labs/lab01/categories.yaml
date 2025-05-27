@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nw-categories
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nw-categories
+  template:
+    metadata:
+      labels:
+        app: nw-categories
+    spec:
+      containers:
+        - name: nw-categories
+          image: learnwithvinod/nw-categories
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nw-categories-service
+spec:
+  selector:
+    app: nw-categories
+  ports:
+    - protocol: TCP
+      port: 8080 # Service port (internal to cluster)
+      targetPort: 8080 # Pod's port (container)
