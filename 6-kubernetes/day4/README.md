@@ -272,7 +272,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: { { .Values.service.port } }
+            - containerPort: {{ .Values.service.port }}
 ```
 
 ### `charts/categories/templates/service.yaml`
@@ -287,8 +287,8 @@ spec:
   selector:
     app: '{{ .Chart.Name }}'
   ports:
-    - port: { { .Values.service.port } }
-      targetPort: { { .Values.service.port } }
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
 ```
 
 ## == Step 3: Configure `suppliers` Chart ==
@@ -330,7 +330,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: { { .Values.service.port } }
+            - containerPort: {{ .Values.service.port }}
 ```
 
 ### `charts/suppliers/templates/service.yaml`
@@ -345,8 +345,8 @@ spec:
   selector:
     app: '{{ .Chart.Name }}'
   ports:
-    - port: { { .Values.service.port } }
-      targetPort: { { .Values.service.port } }
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
 ```
 
 ## == Step 4: Configure `products` Chart ==
@@ -395,7 +395,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: { { .Values.service.port } }
+            - containerPort: {{ .Values.service.port }}
           env:
             - name: CATEGORY_SERVICE_HOST
               value: '{{ .Values.env.CATEGORY_SERVICE_HOST }}'
@@ -413,15 +413,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: { { .Chart.Name } }
+  name: {{ .Chart.Name }}
 spec:
-  type: { { .Values.service.type } }
+  type: {{ .Values.service.type }}
   selector:
-    app: { { .Chart.Name } }
+    app: {{ .Chart.Name }}
   ports:
-    - port: { { .Values.service.port } }
-      targetPort: { { .Values.service.port } }
-      nodePort: { { .Values.service.nodePort } }
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      nodePort: {{ .Values.service.nodePort }}
 ```
 
 ## == Step 5: Configure Root Helm Chart ==
