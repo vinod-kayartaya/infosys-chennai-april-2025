@@ -145,6 +145,43 @@ Apply with:
 kubectl apply -f quota.yaml
 ```
 
+## Deleting a namespace
+
+```bash
+kubectl delete ns dev-environment
+```
+
+When you delete a namespace, all objects within that namespace are also deleted. This includes:
+
+- Pods
+- Deployments
+- ReplicaSets
+- Services
+- ConfigMaps
+- Secrets
+- PersistentVolumeClaims (PVCs)
+- StatefulSets
+- DaemonSets
+- Jobs and CronJobs
+- NetworkPolicies
+- and any other namespaced resources
+
+### What does **not** get deleted:
+
+- **PersistentVolumes (PVs)**: These are **cluster-scoped**, not namespace-scoped. If a PVC in the namespace was bound to a PV, then the PV will remain (unless you’ve configured the PV's reclaim policy to `Delete`, in which case it may be deleted).
+- **Custom Resources (CRDs)**: The **definition** (CRD) is cluster-scoped, so it is not removed. However, the **instances** of a CRD that are namespaced will be deleted if they belong to the deleted namespace.
+
+### Important Notes:
+
+- Deleting a namespace can take time. Kubernetes uses a **finalizer mechanism** to clean up resources, and some resources may delay the deletion if they are stuck (e.g., a finalizer is not removed).
+- You can monitor the deletion using:
+
+  ```bash
+  kubectl get namespace <namespace-name> -o json
+  ```
+
+  and check the `.status` and `finalizers`.
+
 ## **Securing Namespaces with RBAC**
 
 RBAC roles and role bindings can limit access to specific namespaces.
@@ -272,7 +309,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: { { .Values.service.port } }
 ```
 
 ### `charts/categories/templates/service.yaml`
@@ -287,8 +324,8 @@ spec:
   selector:
     app: '{{ .Chart.Name }}'
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+    - port: { { .Values.service.port } }
+      targetPort: { { .Values.service.port } }
 ```
 
 ## == Step 3: Configure `suppliers` Chart ==
@@ -330,7 +367,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: { { .Values.service.port } }
 ```
 
 ### `charts/suppliers/templates/service.yaml`
@@ -345,8 +382,8 @@ spec:
   selector:
     app: '{{ .Chart.Name }}'
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+    - port: { { .Values.service.port } }
+      targetPort: { { .Values.service.port } }
 ```
 
 ## == Step 4: Configure `products` Chart ==
@@ -395,7 +432,7 @@ spec:
           image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: '{{ .Values.image.pullPolicy }}'
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: { { .Values.service.port } }
           env:
             - name: CATEGORY_SERVICE_HOST
               value: '{{ .Values.env.CATEGORY_SERVICE_HOST }}'
@@ -413,15 +450,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}
+  name: { { .Chart.Name } }
 spec:
-  type: {{ .Values.service.type }}
+  type: { { .Values.service.type } }
   selector:
-    app: {{ .Chart.Name }}
+    app: { { .Chart.Name } }
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
-      nodePort: {{ .Values.service.nodePort }}
+    - port: { { .Values.service.port } }
+      targetPort: { { .Values.service.port } }
+      nodePort: { { .Values.service.nodePort } }
 ```
 
 ## == Step 5: Configure Root Helm Chart ==
